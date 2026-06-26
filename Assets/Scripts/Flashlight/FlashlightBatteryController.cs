@@ -24,8 +24,10 @@ public class FlashlightBatteryController : MonoBehaviour
         currentFlashBatteryCells = Mathf.Clamp(currentFlashBatteryCells, 0, maxFlashBatteryCells);
         spareBatteryCount = Mathf.Max(0, spareBatteryCount);
 
-        if (flashlightLight != null)
-            flashlightLight.enabled = hasFlashlight && currentFlashBatteryCells > 0;
+        if (currentFlashBatteryCells <= 0)
+            HandleEmptyFlashBattery();
+        else if (flashlightLight != null)
+            flashlightLight.enabled = true;
 
         UpdateLightFromBattery();
         UpdateAllUI();
@@ -33,10 +35,13 @@ public class FlashlightBatteryController : MonoBehaviour
 
     private void Update()
     {
-        if (!hasFlashlight || flashlightLight == null || !flashlightLight.enabled)
+        if (currentFlashBatteryCells <= 0)
             return;
 
-        if (currentFlashBatteryCells <= 0)
+        if (flashlightLight != null && !flashlightLight.enabled)
+            flashlightLight.enabled = true;
+
+        if (!hasFlashlight)
             return;
 
         batteryTimer += Time.deltaTime;
@@ -70,6 +75,15 @@ public class FlashlightBatteryController : MonoBehaviour
     public void AddSpareBattery(int amount)
     {
         spareBatteryCount = Mathf.Max(0, spareBatteryCount + amount);
+
+        if (currentFlashBatteryCells <= 0)
+        {
+            HandleEmptyFlashBattery();
+            UpdateLightFromBattery();
+            UpdateAllUI();
+            return;
+        }
+
         UpdateSpareBatteryUI();
     }
 

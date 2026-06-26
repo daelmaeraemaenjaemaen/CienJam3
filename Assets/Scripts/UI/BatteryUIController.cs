@@ -4,17 +4,20 @@ using UnityEngine.UI;
 
 public class BatteryUIController : MonoBehaviour
 {
-    [SerializeField] private Image flashBatteryImage;
-    [SerializeField] private Sprite[] flashBatterySprites;
+    [Header("Flash Battery UI")]
+    [SerializeField] private RawImage flashBatteryImage;
+    [SerializeField] private Texture[] flashBatteryTextures;
+
+    [Header("Spare Battery UI")]
     [SerializeField] private TMP_Text spareBatteryNumberText;
 
     public void UpdateFlashBatteryUI(int currentCells)
     {
-        if (flashBatteryImage == null || flashBatterySprites == null || flashBatterySprites.Length == 0)
+        if (flashBatteryImage == null || flashBatteryTextures == null || flashBatteryTextures.Length == 0)
             return;
 
-        int spriteIndex = Mathf.Clamp(currentCells, 0, flashBatterySprites.Length - 1);
-        flashBatteryImage.sprite = flashBatterySprites[spriteIndex];
+        int textureIndex = Mathf.Clamp(currentCells, 0, flashBatteryTextures.Length - 1);
+        flashBatteryImage.texture = flashBatteryTextures[textureIndex];
     }
 
     public void UpdateSpareBatteryUI(int spareCount)
