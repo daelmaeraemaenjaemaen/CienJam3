@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
   m_UseRadianceAmbientProbe: 0
@@ -769,8 +769,8 @@ Light:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 10
   m_Range: 10
-  m_SpotAngle: 97.18167
-  m_InnerSpotAngle: 45
+  m_SpotAngle: 77.18167
+  m_InnerSpotAngle: 10
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
@@ -829,13 +829,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7660445, y: 0, z: 0, w: 0.64278764}
+  m_LocalRotation: {x: -0.6903456, y: 0.15304591, z: 0.15304591, w: 0.6903456}
   m_LocalPosition: {x: -0, y: 0.77, z: -0.32}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1416983473}
-  m_LocalEulerAnglesHint: {x: -100, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 25, z: 0}
 --- !u!114 &410087042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1552,7 +1552,7 @@ MonoBehaviour:
   enableManualRecharge: 1
   rechargeHintText: {fileID: 1517143673}
   rechargeHintMessage: '[R] charge'
-  rechargeHintDuration: 10
+  rechargeHintDuration: 3
   hasFlashlight: 0
 --- !u!114 &667355233
 MonoBehaviour:
@@ -1625,7 +1625,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   characterController: {fileID: 667355237}
-  moveSpeed: 3
+  moveSpeed: 1.7
   gravity: -9.81
 --- !u!143 &667355237
 CharacterController:
@@ -2603,11 +2603,11 @@ MonoBehaviour:
   agent: {fileID: 1394906580}
   player: {fileID: 667355231}
   patrolLine: {fileID: 440861842}
-  patrolSpeed: 1
+  patrolSpeed: 1.5
   patrolPointReachDistance: 0.5
   loopPatrol: 1
   detectRange: 7
-  chaseSpeed: 3.3
+  chaseSpeed: 2.5
   dangerEffectController: {fileID: 945622008}
   flashlightRepelRaycaster: {fileID: 667355233}
   faceHitBox: {fileID: 442934496}
