@@ -749,7 +749,7 @@ GameObject:
   - component: {fileID: 410087041}
   - component: {fileID: 410087040}
   - component: {fileID: 410087042}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1559,7 +1559,7 @@ MonoBehaviour:
   repelRayDistance: 12
   enemyFaceLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   drawDebugRay: 1
 --- !u!114 &667355234
 MonoBehaviour:
@@ -1579,7 +1579,7 @@ MonoBehaviour:
   interactKey: 101
   interactLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 128
   interactionTextController: {fileID: 945622006}
 --- !u!114 &667355235
 MonoBehaviour:
@@ -2115,7 +2115,7 @@ GameObject:
   - component: {fileID: 1180648596}
   - component: {fileID: 1180648595}
   - component: {fileID: 1180648599}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: battery
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2637,7 +2637,7 @@ GameObject:
   - component: {fileID: 1416983471}
   - component: {fileID: 1416983470}
   - component: {fileID: 1416983474}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Flash
   m_TagString: Untagged
   m_Icon: {fileID: 0}
