@@ -8,6 +8,7 @@ public class InteractionRaycaster : MonoBehaviour
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private LayerMask interactLayerMask = ~0;
     [SerializeField] private InteractionTextController interactionTextController;
+    [SerializeField] private FlashlightBatteryController flashlightBatteryController;
 
     private IInteractable currentInteractable;
 
@@ -47,6 +48,9 @@ public class InteractionRaycaster : MonoBehaviour
 
     private void ShowInteractionText(string message)
     {
+        if (flashlightBatteryController != null)
+            flashlightBatteryController.HideRechargeHint();
+
         if (interactionTextController != null)
             interactionTextController.ShowText(message);
     }

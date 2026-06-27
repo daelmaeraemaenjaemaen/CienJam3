@@ -11,6 +11,11 @@ public class BatteryUIController : MonoBehaviour
     [Header("Spare Battery UI")]
     [SerializeField] private TMP_Text spareBatteryNumberText;
 
+    [Header("UI Visibility")]
+    [SerializeField] private GameObject batteryIconObject;
+    [SerializeField] private GameObject batteryNumberObject;
+    [SerializeField] private GameObject flashBatteryObject;
+
     public void UpdateFlashBatteryUI(int currentCells)
     {
         if (flashBatteryImage == null || flashBatteryTextures == null || flashBatteryTextures.Length == 0)
@@ -33,5 +38,17 @@ public class BatteryUIController : MonoBehaviour
     {
         UpdateFlashBatteryUI(currentCells);
         UpdateSpareBatteryUI(spareCount);
+    }
+
+    public void SetBatteryUIVisible(bool visible)
+    {
+        if (batteryIconObject != null)
+            batteryIconObject.SetActive(visible);
+
+        if (batteryNumberObject != null)
+            batteryNumberObject.SetActive(visible);
+
+        if (flashBatteryObject != null)
+            flashBatteryObject.SetActive(visible);
     }
 }
