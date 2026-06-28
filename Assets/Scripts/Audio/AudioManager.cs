@@ -23,6 +23,8 @@ public class AudioManager : MonoBehaviour
     public float SFXVolume => sfxVolume;
     public float HeartbeatVolume => heartbeatVolume;
 
+    private bool hasWarnedMissingHeartbeatSetup;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -82,10 +84,20 @@ public class AudioManager : MonoBehaviour
     public void PlayHeartbeat()
     {
         if (heartbeatAudioSource == null || heartbeatClip == null)
+        {
+            if (!hasWarnedMissingHeartbeatSetup)
+            {
+                Debug.LogWarning("[AudioManager] Heartbeat AudioSource or Heartbeat Clip is not assigned.");
+                hasWarnedMissingHeartbeatSetup = true;
+            }
+
             return;
+        }
 
         heartbeatAudioSource.clip = heartbeatClip;
         heartbeatAudioSource.loop = true;
+        heartbeatAudioSource.spatialBlend = 0f;
+        heartbeatAudioSource.dopplerLevel = 0f;
         heartbeatAudioSource.volume = heartbeatVolume;
 
         if (!heartbeatAudioSource.isPlaying)
@@ -142,6 +154,8 @@ public class AudioManager : MonoBehaviour
         {
             heartbeatAudioSource.playOnAwake = false;
             heartbeatAudioSource.loop = true;
+            heartbeatAudioSource.spatialBlend = 0f;
+            heartbeatAudioSource.dopplerLevel = 0f;
 
             if (heartbeatClip != null)
                 heartbeatAudioSource.clip = heartbeatClip;
