@@ -16,12 +16,16 @@ public class TitleSceneController : MonoBehaviour
 
     private void OnEnable()
     {
+        ShowCursorForTitle();
+
         if (startButton != null)
             startButton.onClick.AddListener(LoadMapScene);
     }
 
     private void Start()
     {
+        ShowCursorForTitle();
+
         if (playBgmOnStart)
             PlayTitleBGM();
     }
@@ -69,5 +73,11 @@ public class TitleSceneController : MonoBehaviour
     private AudioManager GetAudioManager()
     {
         return AudioManager.Instance != null ? AudioManager.Instance : audioManager;
+    }
+
+    private void ShowCursorForTitle()
+    {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 }

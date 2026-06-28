@@ -446,22 +446,62 @@ public class EnemyAI : MonoBehaviour
         if (player == null || agent == null)
             return transform.position;
 
-        Vector3 fleeDirection = (transform.position - player.position).normalized;
+        Vector3 awayFromPlayer = (transform.position - player.position).normalized;
 
-        if (fleeDirection.sqrMagnitude <= 0.001f)
-            fleeDirection = -transform.forward;
+        if (awayFromPlayer.sqrMagnitude <= 0.001f)
+            awayFromPlayer = -transform.forward;
 
-        Vector3 rawTarget = transform.position + fleeDirection * fleeDistance;
+        float currentDistanceToPlayer = Vector3.Distance(transform.position, player.position);
+        float[] fleeAngleCandidates = { 0f, -30f, 30f, -60f, 60f, -90f, 90f };
+        Vector3 bestTarget = transform.position;
+        float bestScore = float.MinValue;
+        Vector3 fallbackTarget = transform.position;
+        float fallbackScore = float.MinValue;
 
-        if (NavMesh.SamplePosition(rawTarget, out NavMeshHit hit, navMeshSampleRadius, NavMesh.AllAreas))
+        for (int i = 0; i < fleeAngleCandidates.Length; i++)
         {
-            NavMeshPath path = new NavMeshPath();
+            Vector3 rotatedDirection = Quaternion.Euler(0f, fleeAngleCandidates[i], 0f) * awayFromPlayer;
+            Vector3 rawTarget = transform.position + rotatedDirection * fleeDistance;
 
-            if (agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete)
-                return hit.position;
+            if (!NavMesh.SamplePosition(rawTarget, out NavMeshHit hit, navMeshSampleRadius, NavMesh.AllAreas))
+                continue;
+
+            NavMeshPath path = new NavMeshPath();
+            if (!agent.CalculatePath(hit.position, path) || path.status != NavMeshPathStatus.PathComplete)
+                continue;
+
+            float candidateDistanceToPlayer = Vector3.Distance(hit.position, player.position);
+            float travelDistance = Vector3.Distance(transform.position, hit.position);
+            Vector3 moveDir = (hit.position - transform.position).normalized;
+            float awayDot = Vector3.Dot(moveDir, awayFromPlayer);
+            float score = candidateDistanceToPlayer + awayDot * 3f;
+
+            if (candidateDistanceToPlayer > fallbackScore)
+            {
+                fallbackScore = candidateDistanceToPlayer;
+                fallbackTarget = hit.position;
+            }
+
+            if (candidateDistanceToPlayer <= currentDistanceToPlayer)
+                continue;
+
+            if (awayDot < 0.2f)
+                continue;
+
+            if (travelDistance < 0.5f)
+                continue;
+
+            if (score <= bestScore)
+                continue;
+
+            bestScore = score;
+            bestTarget = hit.position;
         }
 
-        return transform.position;
+        if (bestScore > float.MinValue)
+            return bestTarget;
+
+        return fallbackScore > currentDistanceToPlayer ? fallbackTarget : transform.position;
     }
 
     private int FindNearestPatrolIndex()

@@ -24455,6 +24455,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: fleeSpeed
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: chaseSpeed
       value: 4
       objectReference: {fileID: 0}
