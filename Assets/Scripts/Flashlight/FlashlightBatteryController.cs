@@ -189,6 +189,17 @@ public class FlashlightBatteryController : MonoBehaviour
         return spareBatteryCount;
     }
 
+    public bool TryConsumeSpareBattery(int amount)
+    {
+        int safeAmount = Mathf.Max(1, amount);
+        if (spareBatteryCount < safeAmount)
+            return false;
+
+        spareBatteryCount -= safeAmount;
+        UpdateAllUI();
+        return true;
+    }
+
     public bool HasFlashlight()
     {
         return hasFlashlight;

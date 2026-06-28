@@ -22,10 +22,16 @@ public class PlayerDeathHandler : MonoBehaviour
             return;
 
         IsDead = true;
-        Debug.Log("Player Dead");
+        Debug.Log("[PlayerDeathHandler] Player caught by enemy.");
 
         if (playDeathCutscene && deathCutscenePlayer != null)
+        {
             deathCutscenePlayer.PlayDefault();
+        }
+        else if (playDeathCutscene)
+        {
+            Debug.LogWarning("[PlayerDeathHandler] deathCutscenePlayer is not assigned.");
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -54,9 +60,26 @@ public class PlayerDeathHandler : MonoBehaviour
             return;
 
         bool hasEnemyAI = other.GetComponentInParent<EnemyAI>() != null;
-        bool hasEnemyTag = !string.IsNullOrEmpty(enemyTag) && other.tag == enemyTag;
+        bool hasEnemyTag = HasTagInHierarchy(other.transform, enemyTag);
 
         if (hasEnemyAI || hasEnemyTag)
             KillPlayer();
+    }
+
+    private bool HasTagInHierarchy(Transform target, string tagName)
+    {
+        if (target == null || string.IsNullOrEmpty(tagName))
+            return false;
+
+        Transform current = target;
+        while (current != null)
+        {
+            if (current.tag == tagName)
+                return true;
+
+            current = current.parent;
+        }
+
+        return false;
     }
 }

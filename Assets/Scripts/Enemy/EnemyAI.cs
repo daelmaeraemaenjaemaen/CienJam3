@@ -40,6 +40,9 @@ public class EnemyAI : MonoBehaviour
     [Header("Death")]
     [SerializeField] private PlayerDeathHandler playerDeathHandler;
     [SerializeField] private string playerTag = "Player";
+    [SerializeField] private float contactKillDistance = 0.7f;
+    [SerializeField] private LayerMask contactObstructionLayerMask = ~0;
+    [SerializeField] private float contactLinecastHeightOffset = 0.8f;
 
     [Header("Audio")]
     [SerializeField] private AudioManager audioManager;
@@ -132,6 +135,8 @@ public class EnemyAI : MonoBehaviour
                 UpdateReturnToPatrol();
                 break;
         }
+
+        TryKillAssignedPlayerByDistance();
     }
 
     public void RefreshPatrolPath()
@@ -542,6 +547,89 @@ public class EnemyAI : MonoBehaviour
             deathHandler.KillPlayer();
         else
             Debug.LogWarning("EnemyAI: playerDeathHandler is not assigned and could not be found on the player.");
+    }
+
+    private void TryKillAssignedPlayerByDistance()
+    {
+        if (hasTouchedPlayer || player == null || contactKillDistance <= 0f)
+            return;
+
+        float sqrDistance = (transform.position - player.position).sqrMagnitude;
+        if (sqrDistance > contactKillDistance * contactKillDistance)
+            return;
+
+        if (!HasClearCatchLineToPlayer())
+            return;
+
+        TryKillPlayer(player.gameObject);
+    }
+
+    private bool HasClearCatchLineToPlayer()
+    {
+        Vector3 start = transform.position + Vector3.up * contactLinecastHeightOffset;
+        Vector3 end = player.position + Vector3.up * contactLinecastHeightOffset;
+        Vector3 direction = end - start;
+        float distance = direction.magnitude;
+
+        if (distance <= 0.001f)
+            return true;
+
+        RaycastHit[] hits = Physics.RaycastAll(
+            start,
+            direction.normalized,
+            distance,
+            contactObstructionLayerMask,
+            QueryTriggerInteraction.Ignore
+        );
+
+        if (hits == null || hits.Length <= 0)
+            return true;
+
+        SortHitsByDistance(hits);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null || IsOwnCollider(hitCollider))
+                continue;
+
+            if (IsPlayerCollider(hitCollider))
+                return true;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool IsOwnCollider(Collider hitCollider)
+    {
+        return hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform);
+    }
+
+    private bool IsPlayerCollider(Collider hitCollider)
+    {
+        if (player == null)
+            return false;
+
+        Transform hitTransform = hitCollider.transform;
+        return hitTransform == player || hitTransform.IsChildOf(player);
+    }
+
+    private void SortHitsByDistance(RaycastHit[] hits)
+    {
+        for (int i = 0; i < hits.Length - 1; i++)
+        {
+            for (int j = i + 1; j < hits.Length; j++)
+            {
+                if (hits[j].distance >= hits[i].distance)
+                    continue;
+
+                RaycastHit temp = hits[i];
+                hits[i] = hits[j];
+                hits[j] = temp;
+            }
+        }
     }
 
     private void ValidateReferences()

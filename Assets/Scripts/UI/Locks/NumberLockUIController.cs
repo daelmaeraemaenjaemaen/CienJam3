@@ -37,6 +37,7 @@ public class NumberLockUIController : MonoBehaviour, IUIFocusCloseReceiver
         if (panelRoot == null)
             panelRoot = gameObject;
 
+        ValidateInspectorSetup();
         WireButtons();
         UpdateDigitTexts();
     }
@@ -160,6 +161,73 @@ public class NumberLockUIController : MonoBehaviour, IUIFocusCloseReceiver
                     downButtons[i].onClick.AddListener(() => DecreaseDigit(index));
             }
         }
+    }
+
+    private void ValidateInspectorSetup()
+    {
+        ValidateTextArray(digitTexts, nameof(digitTexts));
+        ValidateButtonArray(upButtons, nameof(upButtons));
+        ValidateButtonArray(downButtons, nameof(downButtons));
+
+        if (answerDigits == null || answerDigits.Length != currentDigits.Length)
+            Debug.LogWarning($"{GetLogPrefix()} {nameof(answerDigits)} should have {currentDigits.Length} entries.");
+    }
+
+    private void ValidateTextArray(TMP_Text[] texts, string fieldName)
+    {
+        if (texts == null)
+        {
+            Debug.LogWarning($"{GetLogPrefix()} {fieldName} is not assigned.");
+            return;
+        }
+
+        if (texts.Length != currentDigits.Length)
+            Debug.LogWarning($"{GetLogPrefix()} {fieldName} should have {currentDigits.Length} entries. Current: {texts.Length}.");
+
+        for (int i = 0; i < texts.Length && i < currentDigits.Length; i++)
+        {
+            if (texts[i] == null)
+                Debug.LogWarning($"{GetLogPrefix()} {fieldName}[{i}] is not assigned.");
+        }
+    }
+
+    private void ValidateButtonArray(Button[] buttons, string fieldName)
+    {
+        if (buttons == null)
+        {
+            Debug.LogWarning($"{GetLogPrefix()} {fieldName} is not assigned.");
+            return;
+        }
+
+        if (buttons.Length != currentDigits.Length)
+            Debug.LogWarning($"{GetLogPrefix()} {fieldName} should have {currentDigits.Length} entries. Current: {buttons.Length}.");
+
+        for (int i = 0; i < buttons.Length && i < currentDigits.Length; i++)
+        {
+            Button button = buttons[i];
+            if (button == null)
+            {
+                Debug.LogWarning($"{GetLogPrefix()} {fieldName}[{i}] is not assigned.");
+                continue;
+            }
+
+            if (!button.interactable)
+                Debug.LogWarning($"{GetLogPrefix()} {fieldName}[{i}] button is not interactable: {button.name}");
+
+            if (button.targetGraphic == null)
+            {
+                Debug.LogWarning($"{GetLogPrefix()} {fieldName}[{i}] button has no target graphic: {button.name}");
+                continue;
+            }
+
+            if (!button.targetGraphic.raycastTarget)
+                Debug.LogWarning($"{GetLogPrefix()} {fieldName}[{i}] target graphic raycastTarget is off: {button.name}");
+        }
+    }
+
+    private string GetLogPrefix()
+    {
+        return $"[NumberLockUIController:{gameObject.name}]";
     }
 
     private bool IsValidIndex(int index)

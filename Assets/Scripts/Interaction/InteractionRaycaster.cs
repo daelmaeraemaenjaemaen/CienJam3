@@ -40,13 +40,8 @@ public class InteractionRaycaster : MonoBehaviour
 
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayerMask))
-        {
-            currentInteractable = hit.collider.GetComponent<IInteractable>();
-
-            if (currentInteractable == null)
-                currentInteractable = hit.collider.GetComponentInParent<IInteractable>();
-        }
+        if (TryGetFirstNonPlayerHit(ray, out RaycastHit hit))
+            currentInteractable = GetInteractableFromHit(hit);
 
         if (currentInteractable != null)
         {
@@ -72,5 +67,69 @@ public class InteractionRaycaster : MonoBehaviour
     {
         if (interactionTextController != null)
             interactionTextController.HideText();
+    }
+
+    private bool TryGetFirstNonPlayerHit(Ray ray, out RaycastHit firstHit)
+    {
+        firstHit = default;
+
+        RaycastHit[] hits = Physics.RaycastAll(
+            ray,
+            interactDistance,
+            interactLayerMask,
+            QueryTriggerInteraction.Collide
+        );
+
+        if (hits == null || hits.Length <= 0)
+            return false;
+
+        SortHitsByDistance(hits);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hitCollider = hits[i].collider;
+            if (hitCollider == null || IsPlayerCollider(hitCollider))
+                continue;
+
+            firstHit = hits[i];
+            return true;
+        }
+
+        return false;
+    }
+
+    private IInteractable GetInteractableFromHit(RaycastHit hit)
+    {
+        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+
+        if (interactable == null)
+            interactable = hit.collider.GetComponentInParent<IInteractable>();
+
+        return interactable;
+    }
+
+    private bool IsPlayerCollider(Collider hitCollider)
+    {
+        if (playerObject == null || hitCollider == null)
+            return false;
+
+        Transform hitTransform = hitCollider.transform;
+        return hitTransform == playerObject.transform || hitTransform.IsChildOf(playerObject.transform);
+    }
+
+    private void SortHitsByDistance(RaycastHit[] hits)
+    {
+        for (int i = 0; i < hits.Length - 1; i++)
+        {
+            for (int j = i + 1; j < hits.Length; j++)
+            {
+                if (hits[j].distance >= hits[i].distance)
+                    continue;
+
+                RaycastHit temp = hits[i];
+                hits[i] = hits[j];
+                hits[j] = temp;
+            }
+        }
     }
 }
