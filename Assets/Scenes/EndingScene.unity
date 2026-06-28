@@ -753,7 +753,7 @@ MonoBehaviour:
   titleSceneName: TitleScene
   returnDelay: 10
   audioManager: {fileID: 0}
-  sceneMusicClip: {fileID: 8300000, guid: 6459a24db7f33b8458dedcb0ed5ceb04, type: 3}
+  sceneMusicClip: {fileID: 8300000, guid: 87eeeec15efb6424cbb674e7b8ece439, type: 3}
   musicVolume: 0.7
   loopMusic: 0
   stopCurrentBGMOnStart: 1

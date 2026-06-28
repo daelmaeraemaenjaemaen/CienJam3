@@ -62,6 +62,6 @@ public class TimedReturnSceneController : MonoBehaviour
 
     private AudioManager GetAudioManager()
     {
-        return audioManager != null ? audioManager : AudioManager.Instance;
+        return AudioManager.Instance != null ? AudioManager.Instance : audioManager;
     }
 }

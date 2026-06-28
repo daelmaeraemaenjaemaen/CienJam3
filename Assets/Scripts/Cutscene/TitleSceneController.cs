@@ -61,12 +61,13 @@ public class TitleSceneController : MonoBehaviour
         if (manager == null || titleBgmClip == null)
             return;
 
+        manager.StopBGM();
         manager.SetBGMVolume(titleBgmVolume);
         manager.PlayBGM(titleBgmClip, true);
     }
 
     private AudioManager GetAudioManager()
     {
-        return audioManager != null ? audioManager : AudioManager.Instance;
+        return AudioManager.Instance != null ? AudioManager.Instance : audioManager;
     }
 }

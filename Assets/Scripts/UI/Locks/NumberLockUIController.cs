@@ -35,7 +35,10 @@ public class NumberLockUIController : MonoBehaviour, IUIFocusCloseReceiver
     private void Awake()
     {
         if (panelRoot == null)
+        {
+            Debug.LogWarning($"{GetLogPrefix()} {nameof(panelRoot)} is not assigned. Falling back to this GameObject.");
             panelRoot = gameObject;
+        }
 
         ValidateInspectorSetup();
         WireButtons();
@@ -108,10 +111,25 @@ public class NumberLockUIController : MonoBehaviour, IUIFocusCloseReceiver
         isSolved = true;
         PlayClip(solvedClip);
 
-        if (closeOnSolved)
-            GetFocusManager()?.ClosePanel(panelRoot);
-
         onSolved?.Invoke();
+
+        if (closeOnSolved)
+            CloseSolvedPanel();
+    }
+
+    private void CloseSolvedPanel()
+    {
+        if (panelRoot == null)
+        {
+            Debug.LogWarning($"{GetLogPrefix()} {nameof(panelRoot)} is not assigned, so the solved panel cannot be closed.");
+            return;
+        }
+
+        UIFocusManager manager = GetFocusManager();
+        if (manager != null)
+            manager.ClosePanel(panelRoot);
+        else
+            panelRoot.SetActive(false);
     }
 
     private bool MatchesAnswer()

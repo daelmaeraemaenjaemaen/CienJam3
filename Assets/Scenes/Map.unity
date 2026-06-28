@@ -3777,7 +3777,7 @@ MonoBehaviour:
   - {fileID: 1147730954}
   answerDigits: 00000000060000000900000009000000
   resetDigitsOnOpen: 1
-  closeOnSolved: 0
+  closeOnSolved: 1
   disableAfterSolved: 1
   onSolved:
     m_PersistentCalls:
