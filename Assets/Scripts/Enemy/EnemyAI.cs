@@ -41,6 +41,19 @@ public class EnemyAI : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private AudioManager audioManager;
 
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private float animationFadeTime = 0.15f;
+    [SerializeField] private int baseLayerIndex = 0;
+    [SerializeField] private int upperLayerIndex = 1;
+    [SerializeField] private bool useUpperLayerForFlee = true;
+    [SerializeField] private string patrolAnimationState = "Patrol";
+    [SerializeField] private string chaseAnimationState = "Chase";
+    [SerializeField] private string fleeAnimationState = "Flee";
+    [SerializeField] private string returnToPatrolAnimationState = "ReturnToPatrol";
+    [SerializeField] private string upperEmptyAnimationState = "UpperEmpty";
+    [SerializeField] private string upperFleeAnimationState = "Flee";
+
     [Header("Debug")]
     [SerializeField] private bool drawDebugRange = true;
     [SerializeField] private bool logStateChanges = true;
@@ -57,6 +70,9 @@ public class EnemyAI : MonoBehaviour
 
     private void Awake()
     {
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
         ValidateReferences();
     }
 
@@ -131,6 +147,8 @@ public class EnemyAI : MonoBehaviour
 
     private void EnterState(EnemyState state)
     {
+        PlayStateAnimation(state);
+
         switch (state)
         {
             case EnemyState.Patrol:
@@ -164,6 +182,69 @@ public class EnemyAI : MonoBehaviour
                 }
                 break;
         }
+    }
+
+    private void PlayStateAnimation(EnemyState state)
+    {
+        if (animator == null)
+            return;
+
+        switch (state)
+        {
+            case EnemyState.Patrol:
+                CrossFadeIfStateExists(patrolAnimationState, baseLayerIndex);
+                CrossFadeUpperLayerToEmpty();
+                break;
+
+            case EnemyState.Chase:
+                CrossFadeIfStateExists(chaseAnimationState, baseLayerIndex);
+                CrossFadeUpperLayerToEmpty();
+                break;
+
+            case EnemyState.Flee:
+                CrossFadeIfStateExists(fleeAnimationState, baseLayerIndex);
+
+                if (useUpperLayerForFlee)
+                    CrossFadeIfStateExists(upperFleeAnimationState, upperLayerIndex);
+
+                break;
+
+            case EnemyState.ReturnToPatrol:
+                CrossFadeIfStateExists(returnToPatrolAnimationState, baseLayerIndex);
+                CrossFadeUpperLayerToEmpty();
+                break;
+        }
+    }
+
+    private void CrossFadeUpperLayerToEmpty()
+    {
+        if (!useUpperLayerForFlee)
+            return;
+
+        CrossFadeIfStateExists(upperEmptyAnimationState, upperLayerIndex);
+    }
+
+    private void CrossFadeIfStateExists(string stateName, int layerIndex)
+    {
+        if (animator == null || string.IsNullOrWhiteSpace(stateName))
+            return;
+
+        if (layerIndex < 0 || layerIndex >= animator.layerCount)
+            return;
+
+        int shortNameHash = Animator.StringToHash(stateName);
+        string layerName = animator.GetLayerName(layerIndex);
+        int fullPathHash = Animator.StringToHash($"{layerName}.{stateName}");
+
+        if (!animator.HasState(layerIndex, shortNameHash) && !animator.HasState(layerIndex, fullPathHash))
+        {
+            if (logStateChanges)
+                Debug.LogWarning($"EnemyAI: Animator state '{stateName}' was not found on layer {layerIndex} ({layerName}).");
+
+            return;
+        }
+
+        animator.CrossFade(stateName, animationFadeTime, layerIndex);
     }
 
     private void ExitState(EnemyState state)
@@ -417,6 +498,9 @@ public class EnemyAI : MonoBehaviour
 
         if (faceHitBox == null)
             Debug.LogWarning("EnemyAI: faceHitBox is not assigned.");
+
+        if (animator == null)
+            Debug.LogWarning("EnemyAI: animator is not assigned and could not be found in children.");
     }
 
     private void OnDrawGizmosSelected()
