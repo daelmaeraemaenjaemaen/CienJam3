@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class InteractionRaycaster : MonoBehaviour
 {
@@ -42,46 +42,34 @@ public class InteractionRaycaster : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayerMask))
         {
-            Debug.Log($"[InteractionRaycaster] Hit: {hit.collider.gameObject.name}, Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}, Distance: {hit.distance}");
-
-            IInteractable directInteractable = hit.collider.GetComponent<IInteractable>();
-            IInteractable parentInteractable = null;
-
-            currentInteractable = directInteractable;
+            currentInteractable = hit.collider.GetComponent<IInteractable>();
 
             if (currentInteractable == null)
-            {
-                parentInteractable = hit.collider.GetComponentInParent<IInteractable>();
-                currentInteractable = parentInteractable;
-            }
+                currentInteractable = hit.collider.GetComponentInParent<IInteractable>();
+        }
 
-            Debug.Log($"[InteractionRaycaster] Direct interactable: {directInteractable != null}, Parent interactable: {parentInteractable != null}");
+        if (currentInteractable != null)
+        {
+            string interactText = currentInteractable.GetInteractText();
+            if (string.IsNullOrEmpty(interactText))
+                HideInteractionText();
+            else
+                ShowInteractionText(interactText);
         }
         else
         {
-            Debug.Log("[InteractionRaycaster] Raycast hit nothing");
-        }
-
-        Debug.Log($"[InteractionRaycaster] currentInteractable is null: {currentInteractable == null}");
-
-        if (currentInteractable != null)
-            ShowInteractionText(currentInteractable.GetInteractText());
-        else
             HideInteractionText();
+        }
     }
 
     private void ShowInteractionText(string message)
     {
-        Debug.Log("[InteractionRaycaster] Show interaction text");
-
         if (interactionTextController != null)
             interactionTextController.ShowText(message);
     }
 
     private void HideInteractionText()
     {
-        Debug.Log("[InteractionRaycaster] Hide interaction text");
-
         if (interactionTextController != null)
             interactionTextController.HideText();
     }

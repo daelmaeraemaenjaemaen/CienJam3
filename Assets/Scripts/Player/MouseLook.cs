@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class MouseLook : MonoBehaviour
 {
@@ -13,7 +13,12 @@ public class MouseLook : MonoBehaviour
     [SerializeField] private float minVerticalAngle = -80f;
     [SerializeField] private float maxVerticalAngle = 80f;
 
+    [Header("Control")]
+    [SerializeField] private bool lookLocked;
+
     private float verticalRotation;
+
+    public bool IsLookLocked => lookLocked;
 
     private void Awake()
     {
@@ -32,7 +37,7 @@ public class MouseLook : MonoBehaviour
 
     private void Update()
     {
-        if (playerBody == null || playerCamera == null)
+        if (lookLocked || playerBody == null || playerCamera == null)
             return;
 
         float mouseX = Input.GetAxis("Mouse X") * horizontalSensitivity * Time.deltaTime;
@@ -43,5 +48,10 @@ public class MouseLook : MonoBehaviour
         verticalRotation -= mouseY;
         verticalRotation = Mathf.Clamp(verticalRotation, minVerticalAngle, maxVerticalAngle);
         playerCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+    }
+
+    public void SetLookLocked(bool locked)
+    {
+        lookLocked = locked;
     }
 }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
@@ -14,6 +14,9 @@ public class EnemyAI : MonoBehaviour
     [Header("References")]
     [SerializeField] private NavMeshAgent agent;
     [SerializeField] private Transform player;
+
+    [Header("Activation")]
+    [SerializeField] private bool canMove = true;
 
     [Header("Patrol Line")]
     [SerializeField] private LineRenderer patrolLine;
@@ -67,6 +70,7 @@ public class EnemyAI : MonoBehaviour
     private bool hasLoggedAgentNotOnNavMesh;
 
     public EnemyState CurrentState => currentState;
+    public bool CanMove => canMove;
 
     private void Awake()
     {
@@ -79,13 +83,28 @@ public class EnemyAI : MonoBehaviour
     private void Start()
     {
         CachePatrolPositions();
-        ChangeState(EnemyState.Patrol);
+
+        if (canMove)
+        {
+            SetAgentStopped(false);
+            ChangeState(EnemyState.Patrol);
+        }
+        else
+        {
+            SetAgentStopped(true);
+        }
     }
 
     private void Update()
     {
         if (agent == null)
             return;
+
+        if (!canMove)
+        {
+            SetAgentStopped(true);
+            return;
+        }
 
         if (!agent.isOnNavMesh)
         {
@@ -120,9 +139,40 @@ public class EnemyAI : MonoBehaviour
         CachePatrolPositions();
     }
 
+    public void SetCanMove(bool value)
+    {
+        if (canMove == value)
+            return;
+
+        canMove = value;
+        SetAgentStopped(!canMove);
+
+        if (!canMove)
+        {
+            if (dangerEffectController != null)
+                dangerEffectController.StopDangerEffect();
+
+            GetAudioManager()?.StopHeartbeat();
+            return;
+        }
+
+        if (!hasEnteredInitialState)
+            ChangeState(EnemyState.Patrol);
+    }
+
+    public void StartPatrol()
+    {
+        SetCanMove(true);
+    }
+
+    public void EnableAI()
+    {
+        SetCanMove(true);
+    }
+
     public void RequestFleeFromLight()
     {
-        if (currentState == EnemyState.Flee)
+        if (!canMove || currentState == EnemyState.Flee)
             return;
 
         ChangeState(EnemyState.Flee);
@@ -147,6 +197,7 @@ public class EnemyAI : MonoBehaviour
 
     private void EnterState(EnemyState state)
     {
+        SetAgentStopped(false);
         PlayStateAnimation(state);
 
         switch (state)
@@ -430,6 +481,14 @@ public class EnemyAI : MonoBehaviour
     private bool HasPatrolPath()
     {
         return patrolPositions != null && patrolPositions.Length > 0;
+    }
+
+    private void SetAgentStopped(bool stopped)
+    {
+        if (agent == null || !agent.isOnNavMesh)
+            return;
+
+        agent.isStopped = stopped;
     }
 
     private AudioManager GetAudioManager()

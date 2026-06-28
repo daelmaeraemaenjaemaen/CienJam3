@@ -9,6 +9,11 @@ public class FlashlightPickup : MonoBehaviour, IInteractable
     [SerializeField] private bool disableColliderAfterPickup = true;
     [SerializeField] private Collider pickupCollider;
 
+    [Header("Visuals After Pickup")]
+    [SerializeField] private GameObject[] visualObjectsToHide;
+    [SerializeField] private Renderer[] renderersToDisable;
+    [SerializeField] private bool autoDisableRenderersIfNoVisualsAssigned = true;
+
     private bool isPickedUp;
 
     public string GetInteractText()
@@ -39,9 +44,47 @@ public class FlashlightPickup : MonoBehaviour, IInteractable
         if (disableColliderAfterPickup && pickupCollider != null)
             pickupCollider.enabled = false;
 
+        HideVisualsAfterPickup();
+
         if (flashlightBatteryController != null)
             flashlightBatteryController.OnFlashlightPickedUp();
         else
             Debug.LogWarning("FlashlightPickup could not find a FlashlightBatteryController.");
+    }
+
+    private void HideVisualsAfterPickup()
+    {
+        bool disabledExplicitVisual = false;
+
+        if (visualObjectsToHide != null)
+        {
+            for (int i = 0; i < visualObjectsToHide.Length; i++)
+            {
+                if (visualObjectsToHide[i] == null)
+                    continue;
+
+                visualObjectsToHide[i].SetActive(false);
+                disabledExplicitVisual = true;
+            }
+        }
+
+        if (renderersToDisable != null)
+        {
+            for (int i = 0; i < renderersToDisable.Length; i++)
+            {
+                if (renderersToDisable[i] == null)
+                    continue;
+
+                renderersToDisable[i].enabled = false;
+                disabledExplicitVisual = true;
+            }
+        }
+
+        if (disabledExplicitVisual || !autoDisableRenderersIfNoVisualsAssigned)
+            return;
+
+        Renderer[] childRenderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < childRenderers.Length; i++)
+            childRenderers[i].enabled = false;
     }
 }

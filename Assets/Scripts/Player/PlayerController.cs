@@ -1,12 +1,15 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private CharacterController characterController;
     [SerializeField] private float moveSpeed = 3.0f;
     [SerializeField] private float gravity = -9.81f;
+    [SerializeField] private bool movementLocked;
 
     private float verticalVelocity;
+
+    public bool IsMovementLocked => movementLocked;
 
     private void Awake()
     {
@@ -16,7 +19,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (characterController == null)
+        if (characterController == null || movementLocked)
             return;
 
         float horizontal = Input.GetAxis("Horizontal");
@@ -30,5 +33,13 @@ public class PlayerController : MonoBehaviour
 
         verticalVelocity += gravity * Time.deltaTime;
         characterController.Move(Vector3.up * verticalVelocity * Time.deltaTime);
+    }
+
+    public void SetMovementLocked(bool locked)
+    {
+        movementLocked = locked;
+
+        if (locked)
+            verticalVelocity = 0f;
     }
 }

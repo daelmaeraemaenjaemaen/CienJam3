@@ -1,9 +1,13 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class PlayerDeathHandler : MonoBehaviour
 {
     [SerializeField] private bool dieOnEnemyContact = true;
     [SerializeField] private string enemyTag = "Enemy";
+
+    [Header("Death Cutscene")]
+    [SerializeField] private bool playDeathCutscene = true;
+    [SerializeField] private CutscenePlayer deathCutscenePlayer;
 
     public bool IsDead { get; private set; }
 
@@ -19,6 +23,9 @@ public class PlayerDeathHandler : MonoBehaviour
 
         IsDead = true;
         Debug.Log("Player Dead");
+
+        if (playDeathCutscene && deathCutscenePlayer != null)
+            deathCutscenePlayer.PlayDefault();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -53,4 +60,3 @@ public class PlayerDeathHandler : MonoBehaviour
             KillPlayer();
     }
 }
-
