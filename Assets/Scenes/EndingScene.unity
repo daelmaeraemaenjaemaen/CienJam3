@@ -605,8 +605,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17665d8542afcc04fbfe2884981ffa43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapBGMStarter
-  bgmClip: {fileID: 8300000, guid: 6459a24db7f33b8458dedcb0ed5ceb04, type: 3}
-  audioManager: {fileID: 1163857053}
+  bgmClip: {fileID: 8300000, guid: 87eeeec15efb6424cbb674e7b8ece439, type: 3}
+  audioManager: {fileID: 0}
   playOnStart: 0
   bgmVolume: 0.7
 --- !u!82 &1038405224
@@ -751,8 +751,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimedReturnSceneController
   titleSceneName: TitleScene
-  returnDelay: 5
-  audioManager: {fileID: 1163857053}
+  returnDelay: 10
+  audioManager: {fileID: 0}
   sceneMusicClip: {fileID: 8300000, guid: 6459a24db7f33b8458dedcb0ed5ceb04, type: 3}
   musicVolume: 0.7
   loopMusic: 0

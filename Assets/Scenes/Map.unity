@@ -7088,7 +7088,7 @@ MonoBehaviour:
   targetLocalEulerAngles: {x: 0, y: 130, z: 0}
   rotateDuration: 0
   openClip: {fileID: 0}
-  audioManager: {fileID: 0}
+  audioManager: {fileID: 441107021}
 --- !u!4 &625189999 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8281444737325066938, guid: f3e82dc7c471ff447b3ca0e0bfded076, type: 3}
