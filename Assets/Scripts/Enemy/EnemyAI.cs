@@ -63,6 +63,7 @@ public class EnemyAI : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool drawDebugRange = true;
     [SerializeField] private bool logStateChanges = true;
+    [SerializeField] private bool logContactKillDistance = true;
 
     private EnemyState currentState;
     private Vector3[] patrolPositions = new Vector3[0];
@@ -71,6 +72,7 @@ public class EnemyAI : MonoBehaviour
     private bool hasTouchedPlayer;
     private bool hasEnteredInitialState;
     private bool hasLoggedAgentNotOnNavMesh;
+    private float contactKillDistanceLogTimer;
 
     public EnemyState CurrentState => currentState;
     public bool CanMove => canMove;
@@ -136,6 +138,7 @@ public class EnemyAI : MonoBehaviour
                 break;
         }
 
+        LogContactKillDistanceDebug();
         TryKillAssignedPlayerByDistance();
     }
 
@@ -547,6 +550,20 @@ public class EnemyAI : MonoBehaviour
             deathHandler.KillPlayer();
         else
             Debug.LogWarning("EnemyAI: playerDeathHandler is not assigned and could not be found on the player.");
+    }
+
+    private void LogContactKillDistanceDebug()
+    {
+        if (!logContactKillDistance || player == null)
+            return;
+
+        contactKillDistanceLogTimer += Time.deltaTime;
+        if (contactKillDistanceLogTimer < 2f)
+            return;
+
+        contactKillDistanceLogTimer = 0f;
+        float currentDistance = Vector3.Distance(transform.position, player.position);
+        Debug.Log($"EnemyAI: Player distance {currentDistance:F2}, contactKillDistance {contactKillDistance:F2}");
     }
 
     private void TryKillAssignedPlayerByDistance()
