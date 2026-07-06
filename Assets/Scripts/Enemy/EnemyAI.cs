@@ -27,7 +27,7 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Chase")]
     [SerializeField] private float detectRange = 15f;
-    [SerializeField] private float chaseSpeed = 2.0f;
+    [SerializeField] private float chaseSpeed = 2.2f;
     [SerializeField] private ChaseDangerEffectController dangerEffectController;
 
     [Header("Flee")]
@@ -37,6 +37,7 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float fleeDuration = 5f;
     [SerializeField] private float fleeDistance = 6f;
     [SerializeField] private float navMeshSampleRadius = 3f;
+    [SerializeField] private float fleeRotationSpeed = 8f;
 
     [Header("Agent Tuning")]
     [SerializeField] private float destinationUpdateInterval = 0.2f;
@@ -49,16 +50,16 @@ public class EnemyAI : MonoBehaviour
     [Header("Runtime Movement Clamp")]
     [SerializeField] private bool useRuntimeMovementClamp = true;
     [SerializeField] private float maxPatrolSpeed = 1.2f;
-    [SerializeField] private float maxChaseSpeed = 2.0f;
+    [SerializeField] private float maxChaseSpeed = 2.2f;
     [SerializeField] private float maxFleeSpeed = 2.8f;
-    [SerializeField] private float maxContactKillDistance = 0.85f;
+    [SerializeField] private float maxContactKillDistance = 0.95f;
     [SerializeField] private float maxAgentAcceleration = 6f;
     [SerializeField] private float maxAgentAngularSpeed = 220f;
 
     [Header("Death")]
     [SerializeField] private PlayerDeathHandler playerDeathHandler;
     [SerializeField] private string playerTag = "Player";
-    [SerializeField] private float contactKillDistance = 0.85f;
+    [SerializeField] private float contactKillDistance = 0.95f;
     [SerializeField] private LayerMask contactObstructionLayerMask = ~0;
     [SerializeField] private float contactLinecastHeightOffset = 0.8f;
 
@@ -519,11 +520,31 @@ public class EnemyAI : MonoBehaviour
     private void UpdateFlee()
     {
         fleeTimer += Time.deltaTime;
+        RotateTowardFleeMovement();
 
         if (fleeTimer < fleeDuration)
             return;
 
         ChangeState(HasPatrolPath() ? EnemyState.ReturnToPatrol : EnemyState.Patrol);
+    }
+
+    private void RotateTowardFleeMovement()
+    {
+        if (agent == null || !agent.isOnNavMesh)
+            return;
+
+        Vector3 fleeDirection = agent.velocity;
+
+        if (fleeDirection.sqrMagnitude <= 0.01f && agent.hasPath)
+            fleeDirection = agent.steeringTarget - transform.position;
+
+        fleeDirection.y = 0f;
+
+        if (fleeDirection.sqrMagnitude <= 0.001f)
+            return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(fleeDirection.normalized, Vector3.up);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, fleeRotationSpeed * Time.deltaTime);
     }
 
     private void UpdateReturnToPatrol()

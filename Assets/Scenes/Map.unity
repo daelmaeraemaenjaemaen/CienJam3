@@ -41185,11 +41185,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: fleeSpeed
-      value: 2.8
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: chaseSpeed
-      value: 2
+      value: 3.3
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: patrolLine
@@ -41197,7 +41197,7 @@ PrefabInstance:
       objectReference: {fileID: 1359086620}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: detectRange
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: patrolSpeed
@@ -41213,11 +41213,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: maxChaseSpeed
-      value: 2
+      value: 2.2
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: maxPatrolSpeed
       value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: runAnimatorSpeed
+      value: 1.1
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: agentAcceleration
@@ -41257,7 +41261,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: contactKillDistance
-      value: 0.85
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: maxAgentAcceleration
@@ -41272,20 +41276,16 @@ PrefabInstance:
       value: Patrol
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
-      propertyPath: runAnimatorSpeed
-      value: 1.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
-      propertyPath: upperFleeAnimationState
-      value: Flee
-      objectReference: {fileID: 0}
-    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: dangerEffectController
       value: 
       objectReference: {fileID: 1462635032}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: maxContactKillDistance
-      value: 0.85
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: upperFleeAnimationState
+      value: Flee
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: useRuntimeMovementClamp
@@ -41365,7 +41365,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7489395277355005133, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: m_Speed
-      value: 2
+      value: 2.2
       objectReference: {fileID: 0}
     - target: {fileID: 7489395277355005133, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: m_Acceleration

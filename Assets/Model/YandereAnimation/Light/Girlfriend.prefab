@@ -311,7 +311,7 @@ MonoBehaviour:
   patrolPointReachDistance: 0.5
   loopPatrol: 1
   detectRange: 5
-  chaseSpeed: 2
+  chaseSpeed: 2.2
   dangerEffectController: {fileID: 0}
   flashlightRepelRaycaster: {fileID: 0}
   faceHitBox: {fileID: 3130238552629557129}
@@ -319,6 +319,7 @@ MonoBehaviour:
   fleeDuration: 5
   fleeDistance: 6
   navMeshSampleRadius: 3
+  fleeRotationSpeed: 8
   playerDeathHandler: {fileID: 0}
   playerTag: Player
   audioManager: {fileID: 0}
@@ -330,12 +331,12 @@ MonoBehaviour:
   navMeshWarpSearchRadius: 2
   useRuntimeMovementClamp: 1
   maxPatrolSpeed: 1.2
-  maxChaseSpeed: 2
+  maxChaseSpeed: 2.2
   maxFleeSpeed: 2.8
-  maxContactKillDistance: 0.85
+  maxContactKillDistance: 0.95
   maxAgentAcceleration: 6
   maxAgentAngularSpeed: 220
-  contactKillDistance: 0.85
+  contactKillDistance: 0.95
   contactObstructionLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -386,7 +387,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 2
+  m_Speed: 2.2
   m_Acceleration: 6
   avoidancePriority: 50
   m_AngularSpeed: 220
