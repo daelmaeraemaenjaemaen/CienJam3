@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections.Generic;
 
 public class EnemyAI : MonoBehaviour
 {
@@ -20,13 +21,13 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Patrol Line")]
     [SerializeField] private LineRenderer patrolLine;
-    [SerializeField] private float patrolSpeed = 2.5f;
+    [SerializeField] private float patrolSpeed = 1.5f;
     [SerializeField] private float patrolPointReachDistance = 0.5f;
     [SerializeField] private bool loopPatrol = true;
 
     [Header("Chase")]
     [SerializeField] private float detectRange = 15f;
-    [SerializeField] private float chaseSpeed = 3.3f;
+    [SerializeField] private float chaseSpeed = 2.5f;
     [SerializeField] private ChaseDangerEffectController dangerEffectController;
 
     [Header("Flee")]
@@ -37,10 +38,27 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float fleeDistance = 6f;
     [SerializeField] private float navMeshSampleRadius = 3f;
 
+    [Header("Agent Tuning")]
+    [SerializeField] private float destinationUpdateInterval = 0.2f;
+    [SerializeField] private float destinationRefreshDistance = 0.25f;
+    [SerializeField] private float agentAcceleration = 8f;
+    [SerializeField] private float agentAngularSpeed = 240f;
+    [SerializeField] private float agentStoppingDistance = 0.1f;
+    [SerializeField] private float navMeshWarpSearchRadius = 2f;
+
+    [Header("Runtime Movement Clamp")]
+    [SerializeField] private bool useRuntimeMovementClamp = true;
+    [SerializeField] private float maxPatrolSpeed = 1.5f;
+    [SerializeField] private float maxChaseSpeed = 2.5f;
+    [SerializeField] private float maxFleeSpeed = 3.5f;
+    [SerializeField] private float maxContactKillDistance = 0.95f;
+    [SerializeField] private float maxAgentAcceleration = 8f;
+    [SerializeField] private float maxAgentAngularSpeed = 240f;
+
     [Header("Death")]
     [SerializeField] private PlayerDeathHandler playerDeathHandler;
     [SerializeField] private string playerTag = "Player";
-    [SerializeField] private float contactKillDistance = 0.7f;
+    [SerializeField] private float contactKillDistance = 0.9f;
     [SerializeField] private LayerMask contactObstructionLayerMask = ~0;
     [SerializeField] private float contactLinecastHeightOffset = 0.8f;
 
@@ -53,6 +71,16 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private int baseLayerIndex = 0;
     [SerializeField] private int upperLayerIndex = 1;
     [SerializeField] private bool useUpperLayerForFlee = true;
+    [SerializeField] private string idleAnimationState = "New Animation1";
+    [SerializeField] private string walkAnimationState = "Walking";
+    [SerializeField] private string runAnimationState = "Fast Run";
+    [SerializeField] private string fallbackAnimationState = "New Animation1";
+    [SerializeField] private float idleAnimatorSpeed = 1f;
+    [SerializeField] private float walkAnimatorSpeed = 1f;
+    [SerializeField] private float runAnimatorSpeed = 1.15f;
+    [SerializeField] private float pausedAnimatorSpeed = 0f;
+    [SerializeField] private float movingAnimationVelocityThreshold = 0.05f;
+    [Tooltip("Legacy fallback. If Idle/Walk/Run names do not exist, set the fields above to the real Animator state names.")]
     [SerializeField] private string patrolAnimationState = "Patrol";
     [SerializeField] private string chaseAnimationState = "Chase";
     [SerializeField] private string fleeAnimationState = "Flee";
@@ -72,7 +100,16 @@ public class EnemyAI : MonoBehaviour
     private bool hasTouchedPlayer;
     private bool hasEnteredInitialState;
     private bool hasLoggedAgentNotOnNavMesh;
+    private bool hasTriedNavMeshWarp;
+    private bool hasLoggedAnimatorDisabled;
+    private bool hasLoggedAnimatorControllerMissing;
+    private bool hasLoggedAnimatorAvatarMissing;
     private float contactKillDistanceLogTimer;
+    private float lastDestinationSetTime = -999f;
+    private Vector3 lastDestination;
+    private bool hasLastDestination;
+    private string currentBaseAnimationState;
+    private readonly HashSet<string> missingAnimatorStateWarnings = new HashSet<string>();
 
     public EnemyState CurrentState => currentState;
     public bool CanMove => canMove;
@@ -83,19 +120,23 @@ public class EnemyAI : MonoBehaviour
             animator = GetComponentInChildren<Animator>();
 
         ValidateReferences();
+        ApplyAgentTuning();
     }
 
     private void Start()
     {
         CachePatrolPositions();
+        TryPlaceAgentOnNavMeshOnce();
 
         if (canMove)
         {
+            SetAnimatorSpeed(1f);
             SetAgentStopped(false);
             ChangeState(EnemyState.Patrol);
         }
         else
         {
+            SetAnimatorSpeed(pausedAnimatorSpeed);
             SetAgentStopped(true);
         }
     }
@@ -108,19 +149,20 @@ public class EnemyAI : MonoBehaviour
         if (!canMove)
         {
             SetAgentStopped(true);
+            SetAnimatorSpeed(pausedAnimatorSpeed);
             return;
         }
 
         if (!agent.isOnNavMesh)
         {
-            if (!hasLoggedAgentNotOnNavMesh)
-            {
-                Debug.LogWarning("EnemyAI: NavMeshAgent is not on a NavMesh.");
-                hasLoggedAgentNotOnNavMesh = true;
-            }
+            if (TryPlaceAgentOnNavMeshOnce())
+                return;
 
+            LogAgentNotOnNavMeshWarning();
             return;
         }
+
+        ApplyAgentTuning();
 
         switch (currentState)
         {
@@ -138,6 +180,7 @@ public class EnemyAI : MonoBehaviour
                 break;
         }
 
+        UpdateMovementAnimation(false);
         LogContactKillDistanceDebug();
         TryKillAssignedPlayerByDistance();
     }
@@ -150,13 +193,23 @@ public class EnemyAI : MonoBehaviour
     public void SetCanMove(bool value)
     {
         if (canMove == value)
+        {
+            if (value)
+            {
+                SetAnimatorSpeed(1f);
+                UpdateMovementAnimation(true);
+            }
+
             return;
+        }
 
         canMove = value;
         SetAgentStopped(!canMove);
 
         if (!canMove)
         {
+            SetAnimatorSpeed(pausedAnimatorSpeed);
+
             if (dangerEffectController != null)
                 dangerEffectController.StopDangerEffect();
 
@@ -164,18 +217,28 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
+        SetAnimatorSpeed(1f);
+        ValidateAnimatorRuntimeState();
+        TryPlaceAgentOnNavMeshOnce();
+
         if (!hasEnteredInitialState)
             ChangeState(EnemyState.Patrol);
+        else
+            UpdateMovementAnimation(true);
     }
 
     public void StartPatrol()
     {
         SetCanMove(true);
+        SetAnimatorSpeed(1f);
+        UpdateMovementAnimation(true);
     }
 
     public void EnableAI()
     {
         SetCanMove(true);
+        SetAnimatorSpeed(1f);
+        UpdateMovementAnimation(true);
     }
 
     public void RequestFleeFromLight()
@@ -197,6 +260,7 @@ public class EnemyAI : MonoBehaviour
 
         currentState = nextState;
         hasEnteredInitialState = true;
+        ResetDestinationThrottle();
         EnterState(nextState);
 
         if (logStateChanges)
@@ -205,6 +269,7 @@ public class EnemyAI : MonoBehaviour
 
     private void EnterState(EnemyState state)
     {
+        ApplyAgentTuning();
         SetAgentStopped(false);
         PlayStateAnimation(state);
 
@@ -212,12 +277,12 @@ public class EnemyAI : MonoBehaviour
         {
             case EnemyState.Patrol:
                 if (agent != null)
-                    agent.speed = patrolSpeed;
+                    agent.speed = GetRuntimePatrolSpeed();
                 SetCurrentPatrolDestination();
                 break;
             case EnemyState.Chase:
                 if (agent != null)
-                    agent.speed = chaseSpeed;
+                    agent.speed = GetRuntimeChaseSpeed();
                 if (dangerEffectController != null)
                     dangerEffectController.StartDangerEffect();
                 GetAudioManager()?.PlayHeartbeat();
@@ -226,8 +291,8 @@ public class EnemyAI : MonoBehaviour
                 fleeTimer = 0f;
                 if (agent != null)
                 {
-                    agent.speed = fleeSpeed;
-                    agent.SetDestination(GetFleeTarget());
+                    agent.speed = GetRuntimeFleeSpeed();
+                    SetAgentDestination(GetFleeTarget(), true);
                 }
                 if (dangerEffectController != null)
                     dangerEffectController.StopDangerEffect();
@@ -236,7 +301,7 @@ public class EnemyAI : MonoBehaviour
                 currentPatrolIndex = FindNearestPatrolIndex();
                 if (agent != null)
                 {
-                    agent.speed = patrolSpeed;
+                    agent.speed = GetRuntimePatrolSpeed();
                     SetCurrentPatrolDestination();
                 }
                 break;
@@ -251,17 +316,17 @@ public class EnemyAI : MonoBehaviour
         switch (state)
         {
             case EnemyState.Patrol:
-                CrossFadeIfStateExists(patrolAnimationState, baseLayerIndex);
+                CrossFadeBaseState(!string.IsNullOrWhiteSpace(walkAnimationState) ? walkAnimationState : patrolAnimationState, walkAnimatorSpeed);
                 CrossFadeUpperLayerToEmpty();
                 break;
 
             case EnemyState.Chase:
-                CrossFadeIfStateExists(chaseAnimationState, baseLayerIndex);
+                CrossFadeBaseState(!string.IsNullOrWhiteSpace(runAnimationState) ? runAnimationState : chaseAnimationState, runAnimatorSpeed);
                 CrossFadeUpperLayerToEmpty();
                 break;
 
             case EnemyState.Flee:
-                CrossFadeIfStateExists(fleeAnimationState, baseLayerIndex);
+                CrossFadeBaseState(!string.IsNullOrWhiteSpace(runAnimationState) ? runAnimationState : fleeAnimationState, runAnimatorSpeed);
 
                 if (useUpperLayerForFlee)
                     CrossFadeIfStateExists(upperFleeAnimationState, upperLayerIndex);
@@ -269,10 +334,60 @@ public class EnemyAI : MonoBehaviour
                 break;
 
             case EnemyState.ReturnToPatrol:
-                CrossFadeIfStateExists(returnToPatrolAnimationState, baseLayerIndex);
+                CrossFadeBaseState(!string.IsNullOrWhiteSpace(walkAnimationState) ? walkAnimationState : returnToPatrolAnimationState, walkAnimatorSpeed);
                 CrossFadeUpperLayerToEmpty();
                 break;
         }
+    }
+
+    private void UpdateMovementAnimation(bool forceRefresh)
+    {
+        if (animator == null || agent == null)
+            return;
+
+        if (!canMove || agent.isStopped || agent.velocity.sqrMagnitude <= movingAnimationVelocityThreshold * movingAnimationVelocityThreshold)
+        {
+            CrossFadeBaseState(idleAnimationState, idleAnimatorSpeed, forceRefresh);
+            return;
+        }
+
+        switch (currentState)
+        {
+            case EnemyState.Chase:
+            case EnemyState.Flee:
+                CrossFadeBaseState(runAnimationState, runAnimatorSpeed, forceRefresh);
+                break;
+            case EnemyState.Patrol:
+            case EnemyState.ReturnToPatrol:
+                CrossFadeBaseState(walkAnimationState, walkAnimatorSpeed, forceRefresh);
+                break;
+        }
+    }
+
+    private void CrossFadeBaseState(string stateName, float animatorSpeed, bool forceRefresh = false)
+    {
+        if (!ValidateAnimatorRuntimeState())
+            return;
+
+        SetAnimatorSpeed(animatorSpeed);
+
+        if (!forceRefresh && currentBaseAnimationState == stateName)
+            return;
+
+        if (CrossFadeIfStateExists(stateName, baseLayerIndex))
+        {
+            currentBaseAnimationState = stateName;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(fallbackAnimationState) || fallbackAnimationState == stateName)
+            return;
+
+        if (!forceRefresh && currentBaseAnimationState == fallbackAnimationState)
+            return;
+
+        if (CrossFadeIfStateExists(fallbackAnimationState, baseLayerIndex))
+            currentBaseAnimationState = fallbackAnimationState;
     }
 
     private void CrossFadeUpperLayerToEmpty()
@@ -283,27 +398,33 @@ public class EnemyAI : MonoBehaviour
         CrossFadeIfStateExists(upperEmptyAnimationState, upperLayerIndex);
     }
 
-    private void CrossFadeIfStateExists(string stateName, int layerIndex)
+    private bool CrossFadeIfStateExists(string stateName, int layerIndex)
     {
         if (animator == null || string.IsNullOrWhiteSpace(stateName))
-            return;
+            return false;
 
         if (layerIndex < 0 || layerIndex >= animator.layerCount)
-            return;
+            return false;
+
+        string layerName = animator.GetLayerName(layerIndex);
+        string warningKey = $"{layerIndex}:{stateName}";
+
+        if (missingAnimatorStateWarnings.Contains(warningKey))
+            return false;
 
         int shortNameHash = Animator.StringToHash(stateName);
-        string layerName = animator.GetLayerName(layerIndex);
         int fullPathHash = Animator.StringToHash($"{layerName}.{stateName}");
 
         if (!animator.HasState(layerIndex, shortNameHash) && !animator.HasState(layerIndex, fullPathHash))
         {
-            if (logStateChanges)
+            if (logStateChanges && missingAnimatorStateWarnings.Add(warningKey))
                 Debug.LogWarning($"EnemyAI: Animator state '{stateName}' was not found on layer {layerIndex} ({layerName}).");
 
-            return;
+            return false;
         }
 
         animator.CrossFade(stateName, animationFadeTime, layerIndex);
+        return true;
     }
 
     private void ExitState(EnemyState state)
@@ -344,7 +465,7 @@ public class EnemyAI : MonoBehaviour
         }
 
         if (player != null && agent != null)
-            agent.SetDestination(player.position);
+            SetAgentDestination(player.position, false);
     }
 
     private void UpdateFlee()
@@ -423,7 +544,7 @@ public class EnemyAI : MonoBehaviour
         if (agent == null || !HasPatrolPath())
             return;
 
-        agent.SetDestination(patrolPositions[currentPatrolIndex]);
+        SetAgentDestination(patrolPositions[currentPatrolIndex], true);
     }
 
     private void AdvancePatrolIndex()
@@ -539,6 +660,109 @@ public class EnemyAI : MonoBehaviour
         agent.isStopped = stopped;
     }
 
+    private void ApplyAgentTuning()
+    {
+        if (agent == null)
+            return;
+
+        agent.acceleration = Mathf.Max(0.1f, GetRuntimeAgentAcceleration());
+        agent.angularSpeed = Mathf.Max(1f, GetRuntimeAgentAngularSpeed());
+        agent.stoppingDistance = Mathf.Max(0f, agentStoppingDistance);
+    }
+
+    private float GetRuntimePatrolSpeed()
+    {
+        return useRuntimeMovementClamp ? Mathf.Min(patrolSpeed, maxPatrolSpeed) : patrolSpeed;
+    }
+
+    private float GetRuntimeChaseSpeed()
+    {
+        return useRuntimeMovementClamp ? Mathf.Min(chaseSpeed, maxChaseSpeed) : chaseSpeed;
+    }
+
+    private float GetRuntimeFleeSpeed()
+    {
+        return useRuntimeMovementClamp ? Mathf.Min(fleeSpeed, maxFleeSpeed) : fleeSpeed;
+    }
+
+    private float GetRuntimeContactKillDistance()
+    {
+        return useRuntimeMovementClamp ? Mathf.Min(contactKillDistance, maxContactKillDistance) : contactKillDistance;
+    }
+
+    private float GetRuntimeAgentAcceleration()
+    {
+        return useRuntimeMovementClamp ? Mathf.Min(agentAcceleration, maxAgentAcceleration) : agentAcceleration;
+    }
+
+    private float GetRuntimeAgentAngularSpeed()
+    {
+        return useRuntimeMovementClamp ? Mathf.Min(agentAngularSpeed, maxAgentAngularSpeed) : agentAngularSpeed;
+    }
+
+    private void ResetDestinationThrottle()
+    {
+        hasLastDestination = false;
+        lastDestinationSetTime = -999f;
+    }
+
+    private void SetAgentDestination(Vector3 destination, bool force)
+    {
+        if (agent == null || !agent.isOnNavMesh)
+            return;
+
+        if (!force && hasLastDestination)
+        {
+            float elapsed = Time.time - lastDestinationSetTime;
+            float sqrRefreshDistance = destinationRefreshDistance * destinationRefreshDistance;
+            bool isSameDestination = (destination - lastDestination).sqrMagnitude <= sqrRefreshDistance;
+
+            if (elapsed < destinationUpdateInterval || isSameDestination)
+                return;
+        }
+
+        agent.SetDestination(destination);
+        lastDestination = destination;
+        lastDestinationSetTime = Time.time;
+        hasLastDestination = true;
+    }
+
+    private bool TryPlaceAgentOnNavMeshOnce()
+    {
+        if (agent == null)
+            return false;
+
+        if (agent.isOnNavMesh)
+            return true;
+
+        if (hasTriedNavMeshWarp)
+            return false;
+
+        hasTriedNavMeshWarp = true;
+
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, navMeshWarpSearchRadius, NavMesh.AllAreas))
+            return false;
+
+        float warpDistance = Vector3.Distance(transform.position, hit.position);
+
+        if (!agent.Warp(hit.position))
+            return false;
+
+        hasLoggedAgentNotOnNavMesh = false;
+        ResetDestinationThrottle();
+        Debug.Log($"EnemyAI: NavMeshAgent was warped once to the nearest NavMesh position. Distance: {warpDistance:F2}");
+        return true;
+    }
+
+    private void LogAgentNotOnNavMeshWarning()
+    {
+        if (hasLoggedAgentNotOnNavMesh)
+            return;
+
+        Debug.LogWarning("EnemyAI: NavMeshAgent is not on a NavMesh. Check Girlfriend position and baked NavMesh.");
+        hasLoggedAgentNotOnNavMesh = true;
+    }
+
     private AudioManager GetAudioManager()
     {
         return audioManager != null ? audioManager : AudioManager.Instance;
@@ -603,16 +827,18 @@ public class EnemyAI : MonoBehaviour
 
         contactKillDistanceLogTimer = 0f;
         float currentDistance = Vector3.Distance(transform.position, player.position);
-        Debug.Log($"EnemyAI: Player distance {currentDistance:F2}, contactKillDistance {contactKillDistance:F2}");
+        Debug.Log($"EnemyAI: Player distance {currentDistance:F2}, contactKillDistance {GetRuntimeContactKillDistance():F2}");
     }
 
     private void TryKillAssignedPlayerByDistance()
     {
-        if (hasTouchedPlayer || player == null || contactKillDistance <= 0f)
+        float runtimeContactKillDistance = GetRuntimeContactKillDistance();
+
+        if (hasTouchedPlayer || player == null || runtimeContactKillDistance <= 0f)
             return;
 
         float sqrDistance = (transform.position - player.position).sqrMagnitude;
-        if (sqrDistance > contactKillDistance * contactKillDistance)
+        if (sqrDistance > runtimeContactKillDistance * runtimeContactKillDistance)
             return;
 
         if (!HasClearCatchLineToPlayer())
@@ -689,6 +915,50 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+    private bool ValidateAnimatorRuntimeState()
+    {
+        if (animator == null)
+            return false;
+
+        if (!animator.enabled)
+        {
+            if (!hasLoggedAnimatorDisabled)
+            {
+                Debug.LogWarning("EnemyAI: Animator is disabled. Girlfriend can move, but animation will not play.");
+                hasLoggedAnimatorDisabled = true;
+            }
+
+            return false;
+        }
+
+        if (animator.runtimeAnimatorController == null)
+        {
+            if (!hasLoggedAnimatorControllerMissing)
+            {
+                Debug.LogWarning("EnemyAI: Animator Controller is missing. Assign a controller on Girlfriend Animator.");
+                hasLoggedAnimatorControllerMissing = true;
+            }
+
+            return false;
+        }
+
+        if (animator.avatar == null && !hasLoggedAnimatorAvatarMissing)
+        {
+            Debug.LogWarning("EnemyAI: Animator Avatar is missing. If the model is humanoid, walking/running animation may not play correctly.");
+            hasLoggedAnimatorAvatarMissing = true;
+        }
+
+        return true;
+    }
+
+    private void SetAnimatorSpeed(float speed)
+    {
+        if (animator == null || !animator.enabled)
+            return;
+
+        animator.speed = Mathf.Max(0f, speed);
+    }
+
     private void ValidateReferences()
     {
         if (agent == null)
@@ -705,6 +975,8 @@ public class EnemyAI : MonoBehaviour
 
         if (animator == null)
             Debug.LogWarning("EnemyAI: animator is not assigned and could not be found in children.");
+        else
+            ValidateAnimatorRuntimeState();
     }
 
     private void OnDrawGizmosSelected()
