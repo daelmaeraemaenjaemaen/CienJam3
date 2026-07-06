@@ -41197,7 +41197,7 @@ PrefabInstance:
       objectReference: {fileID: 1359086620}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: detectRange
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: patrolSpeed
