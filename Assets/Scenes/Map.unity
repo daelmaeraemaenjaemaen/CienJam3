@@ -5187,43 +5187,8 @@ PrefabInstance:
     - {fileID: -8700617353114198275, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
     - {fileID: 65702495048144492, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 229325825}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
---- !u!1 &229325824 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
-  m_PrefabInstance: {fileID: 229325823}
-  m_PrefabAsset: {fileID: 0}
---- !u!54 &229325825
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 229325824}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &231941619 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4497976420750628724, guid: ca90f3a6678234a489cf1ab70ebeb587, type: 3}
@@ -23848,48 +23813,13 @@ PrefabInstance:
     - {fileID: -8700617353114198275, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
     - {fileID: 65702495048144492, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1167676714}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
 --- !u!4 &1167676712 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
   m_PrefabInstance: {fileID: 1167676711}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1167676713 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 1d7757b7be558a146a8c949286cde542, type: 3}
-  m_PrefabInstance: {fileID: 1167676711}
-  m_PrefabAsset: {fileID: 0}
---- !u!54 &1167676714
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1167676713}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &1191361118
 GameObject:
   m_ObjectHideFlags: 0
@@ -41255,11 +41185,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: fleeSpeed
-      value: 4
+      value: 2.8
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: chaseSpeed
-      value: 4
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: patrolLine
@@ -41271,24 +41201,96 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: patrolSpeed
-      value: 1.5
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: audioManager
       value: 
       objectReference: {fileID: 441107021}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: maxFleeSpeed
+      value: 2.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: maxChaseSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: maxPatrolSpeed
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: agentAcceleration
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: agentAngularSpeed
+      value: 220
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: fallbackStateName
+      value: Patrol
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: runAnimationState
+      value: Chase
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: fleeAnimationState
+      value: Flee
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: idleAnimationState
+      value: Patrol
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: playerDeathHandler
       value: 
       objectReference: {fileID: 1509547715}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: walkAnimationState
+      value: Patrol
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: chaseAnimationState
+      value: Chase
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: contactKillDistance
-      value: 0.9
+      value: 0.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: maxAgentAcceleration
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: maxAgentAngularSpeed
+      value: 220
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: patrolAnimationState
+      value: Patrol
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: runAnimatorSpeed
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: upperFleeAnimationState
+      value: Flee
       objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: dangerEffectController
       value: 
       objectReference: {fileID: 1462635032}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: maxContactKillDistance
+      value: 0.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: useRuntimeMovementClamp
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: flashlightRepelRaycaster
       value: 
@@ -41296,6 +41298,18 @@ PrefabInstance:
     - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: patrolPointReachDistance
       value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: destinationUpdateInterval
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: destinationRefreshDistance
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4623804189775533908, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: returnToPatrolAnimationState
+      value: ReturnToPatrol
       objectReference: {fileID: 0}
     - target: {fileID: 5624080265181923946, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -41351,7 +41365,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7489395277355005133, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
       propertyPath: m_Speed
-      value: 2.5
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7489395277355005133, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: m_Acceleration
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7489395277355005133, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: m_AngularSpeed
+      value: 220
+      objectReference: {fileID: 0}
+    - target: {fileID: 7489395277355005133, guid: 8005fcd4373e43445b195ba53ff4ff2b, type: 3}
+      propertyPath: m_StoppingDistance
+      value: 0.1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

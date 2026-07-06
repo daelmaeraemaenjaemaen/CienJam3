@@ -21,19 +21,19 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Patrol Line")]
     [SerializeField] private LineRenderer patrolLine;
-    [SerializeField] private float patrolSpeed = 1.5f;
+    [SerializeField] private float patrolSpeed = 1.2f;
     [SerializeField] private float patrolPointReachDistance = 0.5f;
     [SerializeField] private bool loopPatrol = true;
 
     [Header("Chase")]
     [SerializeField] private float detectRange = 15f;
-    [SerializeField] private float chaseSpeed = 2.5f;
+    [SerializeField] private float chaseSpeed = 2.0f;
     [SerializeField] private ChaseDangerEffectController dangerEffectController;
 
     [Header("Flee")]
     [SerializeField] private FlashlightRepelRaycaster flashlightRepelRaycaster;
     [SerializeField] private EnemyFaceHitBox faceHitBox;
-    [SerializeField] private float fleeSpeed = 4.0f;
+    [SerializeField] private float fleeSpeed = 2.8f;
     [SerializeField] private float fleeDuration = 5f;
     [SerializeField] private float fleeDistance = 6f;
     [SerializeField] private float navMeshSampleRadius = 3f;
@@ -41,24 +41,24 @@ public class EnemyAI : MonoBehaviour
     [Header("Agent Tuning")]
     [SerializeField] private float destinationUpdateInterval = 0.2f;
     [SerializeField] private float destinationRefreshDistance = 0.25f;
-    [SerializeField] private float agentAcceleration = 8f;
-    [SerializeField] private float agentAngularSpeed = 240f;
+    [SerializeField] private float agentAcceleration = 6f;
+    [SerializeField] private float agentAngularSpeed = 220f;
     [SerializeField] private float agentStoppingDistance = 0.1f;
     [SerializeField] private float navMeshWarpSearchRadius = 2f;
 
     [Header("Runtime Movement Clamp")]
     [SerializeField] private bool useRuntimeMovementClamp = true;
-    [SerializeField] private float maxPatrolSpeed = 1.5f;
-    [SerializeField] private float maxChaseSpeed = 2.5f;
-    [SerializeField] private float maxFleeSpeed = 3.5f;
-    [SerializeField] private float maxContactKillDistance = 0.95f;
-    [SerializeField] private float maxAgentAcceleration = 8f;
-    [SerializeField] private float maxAgentAngularSpeed = 240f;
+    [SerializeField] private float maxPatrolSpeed = 1.2f;
+    [SerializeField] private float maxChaseSpeed = 2.0f;
+    [SerializeField] private float maxFleeSpeed = 2.8f;
+    [SerializeField] private float maxContactKillDistance = 0.85f;
+    [SerializeField] private float maxAgentAcceleration = 6f;
+    [SerializeField] private float maxAgentAngularSpeed = 220f;
 
     [Header("Death")]
     [SerializeField] private PlayerDeathHandler playerDeathHandler;
     [SerializeField] private string playerTag = "Player";
-    [SerializeField] private float contactKillDistance = 0.9f;
+    [SerializeField] private float contactKillDistance = 0.85f;
     [SerializeField] private LayerMask contactObstructionLayerMask = ~0;
     [SerializeField] private float contactLinecastHeightOffset = 0.8f;
 
@@ -71,13 +71,14 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private int baseLayerIndex = 0;
     [SerializeField] private int upperLayerIndex = 1;
     [SerializeField] private bool useUpperLayerForFlee = true;
-    [SerializeField] private string idleAnimationState = "New Animation1";
-    [SerializeField] private string walkAnimationState = "Walking";
-    [SerializeField] private string runAnimationState = "Fast Run";
-    [SerializeField] private string fallbackAnimationState = "New Animation1";
+    [SerializeField] private bool disableRootMotionAtRuntime = true;
+    [SerializeField] private string idleAnimationState = "Patrol";
+    [SerializeField] private string walkAnimationState = "Patrol";
+    [SerializeField] private string runAnimationState = "Chase";
+    [SerializeField] private string fallbackStateName = "Patrol";
     [SerializeField] private float idleAnimatorSpeed = 1f;
     [SerializeField] private float walkAnimatorSpeed = 1f;
-    [SerializeField] private float runAnimatorSpeed = 1.15f;
+    [SerializeField] private float runAnimatorSpeed = 1.1f;
     [SerializeField] private float pausedAnimatorSpeed = 0f;
     [SerializeField] private float movingAnimationVelocityThreshold = 0.05f;
     [Tooltip("Legacy fallback. If Idle/Walk/Run names do not exist, set the fields above to the real Animator state names.")]
@@ -316,17 +317,17 @@ public class EnemyAI : MonoBehaviour
         switch (state)
         {
             case EnemyState.Patrol:
-                CrossFadeBaseState(!string.IsNullOrWhiteSpace(walkAnimationState) ? walkAnimationState : patrolAnimationState, walkAnimatorSpeed);
+                CrossFadeMovementState(true);
                 CrossFadeUpperLayerToEmpty();
                 break;
 
             case EnemyState.Chase:
-                CrossFadeBaseState(!string.IsNullOrWhiteSpace(runAnimationState) ? runAnimationState : chaseAnimationState, runAnimatorSpeed);
+                CrossFadeMovementState(true);
                 CrossFadeUpperLayerToEmpty();
                 break;
 
             case EnemyState.Flee:
-                CrossFadeBaseState(!string.IsNullOrWhiteSpace(runAnimationState) ? runAnimationState : fleeAnimationState, runAnimatorSpeed);
+                CrossFadeMovementState(true);
 
                 if (useUpperLayerForFlee)
                     CrossFadeIfStateExists(upperFleeAnimationState, upperLayerIndex);
@@ -334,7 +335,7 @@ public class EnemyAI : MonoBehaviour
                 break;
 
             case EnemyState.ReturnToPatrol:
-                CrossFadeBaseState(!string.IsNullOrWhiteSpace(walkAnimationState) ? walkAnimationState : returnToPatrolAnimationState, walkAnimatorSpeed);
+                CrossFadeMovementState(true);
                 CrossFadeUpperLayerToEmpty();
                 break;
         }
@@ -347,21 +348,71 @@ public class EnemyAI : MonoBehaviour
 
         if (!canMove || agent.isStopped || agent.velocity.sqrMagnitude <= movingAnimationVelocityThreshold * movingAnimationVelocityThreshold)
         {
-            CrossFadeBaseState(idleAnimationState, idleAnimatorSpeed, forceRefresh);
+            CrossFadeIdleState(forceRefresh);
             return;
         }
+
+        CrossFadeMovementState(forceRefresh);
+    }
+
+    private void CrossFadeMovementState(bool forceRefresh)
+    {
+        if (!ValidateAnimatorRuntimeState())
+            return;
+
+        bool isFastMovement = currentState == EnemyState.Chase || currentState == EnemyState.Flee;
+        SetAnimatorSpeed(isFastMovement ? runAnimatorSpeed : walkAnimatorSpeed);
 
         switch (currentState)
         {
             case EnemyState.Chase:
-            case EnemyState.Flee:
-                CrossFadeBaseState(runAnimationState, runAnimatorSpeed, forceRefresh);
+                if (TryCrossFadeBaseState(runAnimationState, forceRefresh))
+                    return;
+                if (TryCrossFadeBaseState(chaseAnimationState, forceRefresh))
+                    return;
+                if (TryCrossFadeBaseState(walkAnimationState, forceRefresh))
+                    return;
                 break;
-            case EnemyState.Patrol:
+
+            case EnemyState.Flee:
+                if (TryCrossFadeBaseState(fleeAnimationState, forceRefresh))
+                    return;
+                if (TryCrossFadeBaseState(runAnimationState, forceRefresh))
+                    return;
+                if (TryCrossFadeBaseState(walkAnimationState, forceRefresh))
+                    return;
+                break;
+
             case EnemyState.ReturnToPatrol:
-                CrossFadeBaseState(walkAnimationState, walkAnimatorSpeed, forceRefresh);
+                if (TryCrossFadeBaseState(walkAnimationState, forceRefresh))
+                    return;
+                if (TryCrossFadeBaseState(returnToPatrolAnimationState, forceRefresh))
+                    return;
+                break;
+
+            case EnemyState.Patrol:
+            default:
+                if (TryCrossFadeBaseState(walkAnimationState, forceRefresh))
+                    return;
+                if (TryCrossFadeBaseState(patrolAnimationState, forceRefresh))
+                    return;
                 break;
         }
+
+        TryCrossFadeBaseState(fallbackStateName, forceRefresh);
+    }
+
+    private void CrossFadeIdleState(bool forceRefresh)
+    {
+        if (!ValidateAnimatorRuntimeState())
+            return;
+
+        SetAnimatorSpeed(idleAnimatorSpeed);
+
+        if (TryCrossFadeBaseState(idleAnimationState, forceRefresh))
+            return;
+
+        TryCrossFadeBaseState(fallbackStateName, forceRefresh);
     }
 
     private void CrossFadeBaseState(string stateName, float animatorSpeed, bool forceRefresh = false)
@@ -370,24 +421,21 @@ public class EnemyAI : MonoBehaviour
             return;
 
         SetAnimatorSpeed(animatorSpeed);
+        TryCrossFadeBaseState(stateName, forceRefresh);
+    }
 
+    private bool TryCrossFadeBaseState(string stateName, bool forceRefresh)
+    {
         if (!forceRefresh && currentBaseAnimationState == stateName)
-            return;
+            return true;
 
         if (CrossFadeIfStateExists(stateName, baseLayerIndex))
         {
             currentBaseAnimationState = stateName;
-            return;
+            return true;
         }
 
-        if (string.IsNullOrWhiteSpace(fallbackAnimationState) || fallbackAnimationState == stateName)
-            return;
-
-        if (!forceRefresh && currentBaseAnimationState == fallbackAnimationState)
-            return;
-
-        if (CrossFadeIfStateExists(fallbackAnimationState, baseLayerIndex))
-            currentBaseAnimationState = fallbackAnimationState;
+        return false;
     }
 
     private void CrossFadeUpperLayerToEmpty()
@@ -946,6 +994,12 @@ public class EnemyAI : MonoBehaviour
         {
             Debug.LogWarning("EnemyAI: Animator Avatar is missing. If the model is humanoid, walking/running animation may not play correctly.");
             hasLoggedAnimatorAvatarMissing = true;
+        }
+
+        if (disableRootMotionAtRuntime && animator.applyRootMotion)
+        {
+            animator.applyRootMotion = false;
+            Debug.LogWarning("EnemyAI: Animator Apply Root Motion was enabled and has been disabled at runtime so NavMeshAgent can control movement.");
         }
 
         return true;
